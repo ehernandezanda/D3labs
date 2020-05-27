@@ -1,0 +1,95 @@
+
+
+var width =600
+var height=400
+var margin = {top: 10, right: 10, bottom: 100, left:100};
+
+d3.json("data/buildings.json").then((data)=> {
+
+	data.forEach((d)=>{
+
+		d.height = +d.height;
+
+	});
+
+var g = d3.select("body")
+
+	.append("svg")
+
+		.attr("width", width + margin.right + margin.left)
+
+		.attr("height", height + margin.top + margin.bottom)
+
+	.append("g")
+
+		.attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+var bottomAxis = d3.axisBottom(x).ticks(5);
+
+g.append("g")
+
+	.attr("class", "bottom axis")
+
+	.attr("transform", "translate(0, " + height+ ")")
+	.call(bottomAxis);
+
+var leftAxis = d3.axisLeft(y);
+
+g.append("g")
+
+	.attr("class", "left axis")
+	.call(leftAxis);
+
+
+
+
+var x = d3.scaleBand()
+
+	.domain(data.map((d)=>{return d.name}))
+
+	.range([0,400])
+
+	.paddingInner(0.3)
+
+	.paddingOuter(0.3);
+var y = d3.scaleLinear()
+
+	.domain(data.map((d)=>{return d.height}))
+
+	.range([0,400]);
+
+var ordinal = d3.scaleOrdinal()
+	.domain(data.map((d)=>{return d.name}))
+
+	.range(d3.schemeSet3);
+var rects = g.selectAll("rect").data(data)
+	.enter()
+
+	.append("rect")
+
+	.attr("y", (d) => { return y(d.height); })
+
+	.attr("x", (d) => { return x(d.name); })
+
+	.attr("width", x.bandwidth)
+
+	.attr("height", (d) => { return height - y(d.height); })
+
+	.attr("fill", "grey");
+console.log(ordinal("Shanghai Tower"));
+});
+/*
+for (i = 0; i < dataBuilding.length; i++) {
+  var rect = svg.append("rect")
+
+	.attr("x", difference+i*45+10)
+
+	.attr("y", 20+dataBuilding[i]/2)
+
+	.attr("width", 30)
+	.attr("height", dataBuilding[i]/2)
+
+	.attr("fill",ordinal(data));
+}
+});*/
+
+
