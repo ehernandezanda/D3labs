@@ -50,6 +50,7 @@ var area = d3.scaleLinear()
 
 	.domain([2000, 1400000000])
 	.range([25*Math.PI,1500*Math.PI]);
+
 var continentColor = d3.scaleOrdinal()
 	.domain(["europe", "asia", "americas", "africa"])
 	.range(d3.schemePastel1);
@@ -152,7 +153,7 @@ g.append("text")
 	.text("GDP Per Capita ($)");
 var counterYear=0
 
-
+var time=0
 var yearLabel = g.append("text")
 	.attr("class", "y axis-label")
 
@@ -167,33 +168,39 @@ var yearLabel = g.append("text")
 	.attr("transform", "rotate(0)")
 
 	.style("fill","black")
-	d3.interval( ( ) => { 
-		counterYear=counterYear+1;
-		update(data,formattedData,counterYear,g,yearLabel,continentColor,y,x); flag = !flag;}, 1000);
 
-update(data,formattedData,counterYear,g,yearLabel,continentColor,y,x);
+d3.interval( ()=> { 
+		time = (time < 214)?time+1:0
+		counterYear=counterYear+1
+		update(formattedData[time],data,counterYear,g,yearLabel,continentColor,y,x,yearLabel,time,area);}, 100);
+
+update(formattedData[0],data,counterYear,g,yearLabel,continentColor,y,x,yearLabel,time,area);
 }).catch((error)=> {
 
 	console.log(error);
 
 });
-function update(data,formattedData,counterYear,g,yearLabel,continentColor,y,x) {
+
+function update(formattedData,data,counterYear,g,yearLabel,continentColor,y,x,yearLabel,time,area) {
+	var t= d3.transition().duration(100);
+
 	yearLabel.text(data[counterYear].year);
 	//console.log(formattedData.map((year) => { return year}).map((country) => {return country.continent}))
-	for (i = 0; i < 100; i++) {
-		var circles=g.selectAll("circle").data(formattedData)
-	.enter()
+	var circles=g.selectAll("circle").data(formattedData,(d)=>{return d.country;});
+
+	circles.exit()
+	.attr("class","exit").remove();
+
+
+	circles.enter()
 	.append("circle")
+	.attr("class","enter")
+	.attr("fill",(d)=>{return continentColor(d.continent);})
+	.merge(circles)
+	.transition(t)
+	.attr("cy",(d)=>{return y(d.life_exp);})
+	.attr("cx",(d)=>{return x(d.income)})
+	.attr("r",(d)=>{return Math.sqrt(area(d.population)/Math.PI)});
 
-	.attr("fill",  continentColor((formattedData[counterYear][i].continent)))
-
-	//.attr("cy", (year) => { return y((country) => { return country.life_exp})}
-	.attr("cx", function(d) { return x(d.countries,(c)=>{return c.life_exp})})
-	.attr("cy", y(formattedData[counterYear][i].life_exp))
-
-	//.attr("cx", x(formattedData[counterYear][i].income))
-
-	.attr("r",10);
-	}
 	
 }
